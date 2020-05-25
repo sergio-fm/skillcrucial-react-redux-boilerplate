@@ -51,21 +51,20 @@ server.get('/api/v1/users/', async (req, res) => {
 
 server.post('/api/v1/users/', async (req, res) => {
   let temp = {}
+  let addId = 1
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then((data) => {
       temp = JSON.parse(data)
-      temp = [...temp, { id: temp[temp.length - 1].id + 1 }]
+      addId = temp[temp.length - 1].id + 1
+      temp = [...temp, { id: addId }]
     })
     .catch(() => {
-      temp = { id: 1 }
+      temp = { id: addId }
       return temp
     })
   await saveFile(temp)
-  res.json({ status: 'success' })
+  res.json({ status: 'ok', id: addId })
 })
-
-// patch /api/v1/users/:userId - дополняет юзера в users.json с id равным userId и возвращает { status: 'success', id: userId }
-// delete /api/v1/users/:userId - удаляет юзера в users.json с id равным userId и возвращает { status: 'success', id: userId }
 
 server.delete('/api/v1/users/:userId', async (req, res) => {
   const { userId } = req.params
@@ -76,7 +75,7 @@ server.delete('/api/v1/users/:userId', async (req, res) => {
     })
     .catch(() => {})
   await saveFile(temp)
-  res.json({ status: 'success', id: userId })
+  res.json({ status: 'ok', id: userId })
 })
 
 server.patch('/api/v1/users/:userId', async (req, res) => {
@@ -92,12 +91,12 @@ server.patch('/api/v1/users/:userId', async (req, res) => {
       return temp
     })
   await saveFile(temp)
-  res.json({ status: 'success', id: userId })
+  res.json({ status: 'ok', id: userId })
 })
 
 server.delete('/api/v1/users/', async (req, res) => {
   await unlink(`${__dirname}/test.json`)
-  res.json({ status: 'File deleted' })
+  res.json({ status: 'ok' })
 })
 
 server.use('/api/', (req, res) => {
