@@ -52,14 +52,15 @@ server.get('/api/v1/users/', async (req, res) => {
 server.post('/api/v1/users/', async (req, res) => {
   let temp = {}
   let addId = 1
+  const { userData } = req.body
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then((data) => {
       temp = JSON.parse(data)
       addId = temp[temp.length - 1].id + 1
-      temp = [...temp, { id: addId }]
+      temp = [...temp, { id: addId, ...userData }]
     })
     .catch(() => {
-      temp = { id: addId }
+      temp = { id: addId, ...userData }
       return temp
     })
   await saveFile(temp)
