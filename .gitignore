@@ -69,4 +69,4 @@ yarn-error.log
 
 #test
 
-test.json
+server/test.json
