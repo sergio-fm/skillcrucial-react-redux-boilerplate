@@ -13,6 +13,22 @@ let connections = []
 
 const port = process.env.PORT || 8080
 const server = express()
+const { readFile, writeFile, unlink } = require('fs').promises
+// stat,
+
+const saveFile = (users) => {
+  writeFile(`${__dirname}/test.json`, JSON.stringify(users), { encoding: 'utf8' })
+}
+
+const ownReadFile = async () => {
+  return readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
+    .then((data) => JSON.parse(data))
+    .catch(async () => {
+      const { data: users } = await axios('https://jsonplaceholder.typicode.com/users')
+      await saveFile(users)
+      return users
+    })
+}
 
 server.use(cors())
 
@@ -22,11 +38,28 @@ server.use(bodyParser.json({ limit: '50mb', extended: true }))
 
 server.use(cookieParser())
 
-server.get('/api/v1/users/take/:number', async (req, res) => {  
-  const { number } = req.params  
-  const { data: users } = await axios('https://jsonplaceholder.typicode.com/users')  
-  res.json(users.slice(0, +number))  
-})  
+server.use((req, res, next) => {
+  res.set('x-skillcrucial-user', '5e20b979-5408-4285-9b32-2b5234fee420')
+  res.set('Access-Control-Expose-Headers', 'X-SKILLCRUCIAL-USER')
+  res.set('x-skillcrucial-dir', __dirname)
+  next()
+})
+
+server.get('/api/v1/users/', async (req, res) => {
+  const users = await ownReadFile()
+  res.json(users)
+})
+
+server.get('/api/v1/users/take/:number', async (req, res) => {
+  const { number } = req.params
+  const { data: users } = await axios('https://jsonplaceholder.typicode.com/users')
+  res.json(users.slice(0, +number))
+})
+
+server.delete('/api/v1/users/', async (req, res) => {
+  await unlink(`${__dirname}/test.json`)
+  res.json({ status: 'File deleted' })
+})
 
 server.use('/api/', (req, res) => {
   res.status(404)
