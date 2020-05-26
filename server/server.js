@@ -16,20 +16,6 @@ const server = express()
 const { readFile, writeFile, unlink } = require('fs').promises
 // stat,
 
-const saveFile = (users) => {
-  writeFile(`${__dirname}/test.json`, JSON.stringify(users), { encoding: 'utf8' })
-}
-
-const ownReadFile = async () => {
-  return readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
-    .then((data) => JSON.parse(data))
-    .catch(async () => {
-      const { data: users } = await axios('https://jsonplaceholder.typicode.com/users')
-      await saveFile(users)
-      return users
-    })
-}
-
 server.use(cors())
 
 server.use(express.static(path.resolve(__dirname, '../dist/assets')))
@@ -44,6 +30,20 @@ server.use((req, res, next) => {
   next()
 })
 
+const saveFile = (users) => {
+  writeFile(`${__dirname}/test.json`, JSON.stringify(users), { encoding: 'utf8' })
+}
+
+const ownReadFile = async () => {
+  return readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
+    .then((data) => JSON.parse(data))
+    .catch(async () => {
+      const { data: users } = await axios('https://jsonplaceholder.typicode.com/users')
+      await saveFile(users)
+      return users
+    })
+}
+
 server.get('/api/v1/users/', async (req, res) => {
   const users = await ownReadFile()
   res.json(users)
@@ -52,19 +52,20 @@ server.get('/api/v1/users/', async (req, res) => {
 server.post('/api/v1/users/', async (req, res) => {
   let temp = {}
   let addId = 1
-  const { userData } = req.body
+//  const { userData } = req.body
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
-    .then((data) => {
+    .then(async (data) => {
       temp = JSON.parse(data)
       addId = temp[temp.length - 1].id + 1
-      temp = [...temp, { id: addId, ...userData }]
+      temp = [...temp, { id: addId, ...req.body }]
+      await saveFile(temp)
+      res.json({ status: 'ok', id: addId })
     })
-    .catch(() => {
-      temp = { id: addId, ...userData }
-      return temp
+    .catch(async () => {
+      temp = { id: addId, ...req.body }
+      await saveFile(temp)
+      res.json({ status: 'ok', id: addId })
     })
-  await saveFile(temp)
-  res.json({ status: 'ok', id: addId })
 })
 
 server.delete('/api/v1/users/:userId', async (req, res) => {
