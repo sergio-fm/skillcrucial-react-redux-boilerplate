@@ -85,10 +85,10 @@ server.patch('/api/v1/users/:userId', async (req, res) => {
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then(async (data) => {
       temp = JSON.parse(data)
-      //  if (temp.filter((it) => it.id === +userId).length === 0) {
-      temp = [...temp.filter((it) => it.id !== +userId), { id: +userId, ...req.body }]
+//      if (temp.filter((it) => it.id === +userId).length === 0) {
+      temp = [...temp.filter((it) => it.id !== +userId), {...temp.filter((it) => it.id === +userId)[0], ...{ id: +userId, ...req.body }}]
       await saveFile(temp)
-      //  }
+//      }
       res.json({ status: 'ok', id: +userId })
     })
     .catch(async () => {
