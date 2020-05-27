@@ -68,7 +68,7 @@ server.post('/api/v1/users/', async (req, res) => {
 })
 
 server.delete('/api/v1/users/:userId', async (req, res) => {
-  const { userId } = +req.params
+  const { userId } = req.params
   let temp = {}
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then((data) => {
