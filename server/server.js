@@ -52,7 +52,6 @@ server.get('/api/v1/users/', async (req, res) => {
 server.post('/api/v1/users/', async (req, res) => {
   let temp = {}
   let addId = 1
-//  const { userData } = req.body
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then(async (data) => {
       temp = JSON.parse(data)
@@ -69,7 +68,7 @@ server.post('/api/v1/users/', async (req, res) => {
 })
 
 server.delete('/api/v1/users/:userId', async (req, res) => {
-  const { userId } = req.params
+  const { userId } = +req.params
   let temp = {}
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
     .then((data) => {
@@ -84,16 +83,19 @@ server.patch('/api/v1/users/:userId', async (req, res) => {
   const { userId } = req.params
   let temp = {}
   await readFile(`${__dirname}/test.json`, { encoding: 'utf8' })
-    .then((data) => {
+    .then(async (data) => {
       temp = JSON.parse(data)
-      temp = [...temp, { id: +userId }]
+      if (temp.filter((it) => it.id === +userId).length === 0) {
+        temp = [...temp, { id: +userId, ...req.body }]
+        await saveFile(temp)
+      }
+      res.json({ status: 'ok', id: +userId })
     })
-    .catch(() => {
-      temp = { id: +userId }
-      return temp
+    .catch(async () => {
+      temp = { id: +userId, ...req.body }
+      await saveFile(temp)
+      res.json({ status: 'ok', id: +userId })
     })
-  await saveFile(temp)
-  res.json({ status: 'ok', id: userId })
 })
 
 server.delete('/api/v1/users/', async (req, res) => {
